@@ -1,40 +1,38 @@
 pipeline {
-    agent any
+    agent any // IN THE LECTURE I WILL EXPLAIN THE SCRIPT AND THE WORKFLOW
 
-        tools {
-            maven 'Maven3'
-        }
-
+    environment {
+        // Define Docker Hub credentials ID
+        DOCKERHUB_CREDENTIALS_ID = 'stefuthomas'
+        // Define Docker Hub repository name
+        DOCKERHUB_REPO = 'stefuthomas/TempConverter'
+        // Define Docker image tag
+        DOCKER_IMAGE_TAG = 'latest'
+    }
     stages {
         stage('Checkout') {
             steps {
+                // Checkout code from Git repository
                 git 'https://github.com/stefuthomas/TempConverter.git'
             }
         }
-
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
-                bat 'mvn clean install'
+                // Build Docker image
+                script {
+                    docker.build("${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG}")
+                }
             }
         }
-
-        stage('Test') {
+        stage('Push Docker Image to Docker Hub') {
             steps {
-                bat 'mvn test'
+                // Push Docker image to Docker Hub
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS_ID) {
+                        docker.image("${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG}").push()
+                    }
+                }
             }
-        }
-
-        stage('Code Coverage') {
-            steps {
-                jacoco execPattern: '**/target/jacoco.exec'
-            }
-        }
-    }
-
-    post {
-        always {
-            junit '**/target/surefire-reports/*.xml'
-            jacoco execPattern: '**/target/jacoco.exec'
         }
     }
 }
