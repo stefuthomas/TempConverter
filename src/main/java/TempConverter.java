@@ -14,4 +14,8 @@ public class TempConverter {
     public static float kelvinToCel(float kel) {
         return (float) (kel - 273.15);
     }
+
+    public static  double	kelvinToFah(double kel) {
+        return Math.round((kel-273.15)* (9/5) + 32);
+    }
 }
